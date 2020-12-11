@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <link rel="icon" href="favicon.png">
+    <style media="screen">
+      body {
+        font-family: "Courier New", monospace;
+        text-align: center;
+      }
+      canvas, input {
+        margin: 0 auto;
+        display: block;
+      }
+      input {
+        text-align: center;
+        font-size: 4vh;
+        width: 3em;
+        font-family: "Courier", monospace;
+      }
+    </style>
+    <title>Interactive Cypher</title>
+  </head>
+  <body>
+    <h1>Interactive Cypher</h1>
+    <canvas id="canvas" width="300" height="300"></canvas>
+    <h2>Key:</h2>
+    <input type="number" id="key" value="0">
+
+    <script type="text/javascript">
+      const letters = Array.from("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+      const canvasSize = Math.min(window.innerWidth, window.innerHeight) * 0.75;
+      const bigCircleRadius = canvasSize * 0.45;
+      const letterBuffer = 30;
+      const ringWidth = letterBuffer + 10;
+      const littleRingWidth = 2*(letterBuffer + 10);
+      const littleCircleRadius = bigCircleRadius - ringWidth;
+      const tau = Math.PI * 2;
+      const ctx = canvas.getContext("2d");
+      canvas.width = canvasSize;
+      canvas.height = canvasSize;
+      ctx.font = `${canvasSize * 0.03}px Courier`;
+      ctx.translate(canvasSize/2, canvasSize/2)
+      let offset = 0;
+
+      function drawOuterCircle() {
+        circle(bigCircleRadius)
+        circle(bigCircleRadius - ringWidth)
+        circle(bigCircleRadius - (ringWidth / 2), ringWidth, 'rgb(233, 240, 253)')
+        letters.map(l => l.toLowerCase()).forEach(letter => {
+          ctx.rotate(tau/letters.length * 0.35);
+          ctx.fillText(letter, 0, -bigCircleRadius + letterBuffer);
+          ctx.rotate(tau/letters.length * 0.65);
+          ctx.beginPath();       // Start a new path
+          ctx.moveTo(0, -bigCircleRadius);    // Move the pen to (30, 50)
+          ctx.lineTo(0, -bigCircleRadius + ringWidth);  // Draw a line to (150, 100)
+          ctx.stroke();
+        })
+      }
+
+      function drawInnerCircle() {
+        circle(littleCircleRadius)
+        circle(littleCircleRadius - littleRingWidth)
+        circle(littleCircleRadius - (littleRingWidth / 2), littleRingWidth, 'rgb(253, 247, 226)')
+        ctx.rotate(-offset * tau/letters.length);
+        letters.forEach((letter, index) => {
+          ctx.rotate(tau/letters.length * 0.35);
+          ctx.fillText(letter, 0, -littleCircleRadius + letterBuffer);
+          ctx.rotate(-tau/letters.length * 0.05);
+          ctx.fillText(index, 0, -littleCircleRadius + 2*letterBuffer);
+          ctx.rotate(tau/letters.length * 0.05);
+          ctx.rotate(tau/letters.length * 0.65);
+          ctx.beginPath();       // Start a new path
+          ctx.moveTo(0, -littleCircleRadius);    // Move the pen to (30, 50)
+          ctx.lineTo(0, -littleCircleRadius + littleRingWidth);  // Draw a line to (150, 100)
+          ctx.stroke();
+        })
+        ctx.rotate(offset * tau/letters.length);
+      }
+
+      function circle(radius, stroke=1, color='black') {
+        ctx.lineWidth = stroke;
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, tau);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'black';
+      }
+
+      drawOuterCircle();
+      drawInnerCircle();
+
+      function updateRotation() {
+        offset = Number(key.value);
+        offset = Math.abs(offset + letters.length) % letters.length;
+        console.log('key.value', key.value);
+        console.log('offset', offset);
+        drawInnerCircle()
+        key.value = offset;
+      }
+
+      key.onchange = key.onpaste = key.onkeyup = updateRotation;
+    </script>
+  </body>
+</html>
